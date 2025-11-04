@@ -1,0 +1,139 @@
+{% if u is defined %}
+	<div class="text-sm grid relative grid-cols-12 gap-3 items-center p-3 box hover:border-line" :class="{{u}}.status == 1 ? '' : 'opacity-50 md:opacity-100'" x-data>
+		<a :href="`admin/users/${ {{u}}.id}`" class="absolute top-0 left-0 w-full h-full cursor-pointer"></a>
+
+		<div class="flex col-span-11 gap-3 items-center md:col-span-6">
+			<template x-ref="last_seen_at">
+				{% set last_seen_at %}
+				<x-time :datetime="{{u}}.last_seen_at || {{u}}.created_at" data-type="date"></x-time>
+				{% endset %}
+
+				<span>{{ __('Last seen at %s', last_seen_at)|raw }}</span>
+			</template>
+
+			<x-avatar :title="`${ {{ u }}.first_name} ${ {{ u }}.last_name}`" :src="{{u}}.avatar" :status="{{u}}.is_online ? 'online' : 'offline'" x-tooltip.html="{ content: () => $refs.last_seen_at.innerHTML, appendTo: $root }"></x-avatar>
+
+			<div class="flex flex-col gap-0.5">
+				<div class="flex items-center gap-1">
+					<div class="font-bold" x-text="`${ {{u}}.first_name} ${ {{u}}.last_name}`"></div>
+
+					<template x-if="{{u}}.role == 1">
+						<i class="ti ti-shield-lock-filled text-content-dimmed relative hover:text-content" x-tooltip.raw="{{ __('Admin') }}"></i>
+					</template>
+				</div>
+
+				<div class="text-content-dimmed flex gap-1 items-center">
+					<span class="text-xs" x-text="{{u}}.email"></span>
+					<template x-if="{{u}}.is_email_verified">
+						<i class="ti ti-rosette-discount-check text-content-dimmed relative hover:text-content" x-tooltip.raw="{{ __('Verified email') }}"></i>
+					</template>
+				</div>
+			</div>
+		</div>
+
+		<div class="hidden md:flex md:col-span-3 flex-col gap-0.5">
+			<x-time :datetime="{{u}}.created_at" data-type="date"></x-time>
+
+			<template x-if="{{u}}.country">
+				<div class="text-content-dimmed flex gap-1 items-center text-xs">
+					<span x-text="({{u}}.city_name ? {{u}}.city_name + ({{u}}.country ? ', ' : '') : '') + {{u}}.country.name"></span>
+				</div>
+			</template>
+		</div>
+
+		<div class="hidden md:block justify-self-end {{ actions|default(false) ? 'md:col-span-2' : 'md:col-span-3' }}">
+			<template x-if="{{u}}.id != '{{ user.id }}'">
+				<label class="inline-flex relative z-10 gap-2 items-center cursor-pointer">
+					<input type="checkbox" name="status" class="hidden peer" :checked="{{u}}.status == 1" @click="toggleStatus(user)">
+
+					<span class="text-content-dimmed peer-checked:hidden">
+						{{ p__('status', 'Inactive') }}
+					</span>
+
+					<span class="hidden text-success peer-checked:inline">
+						{{ p__('status', 'Active') }}
+					</span>
+
+					<span class="block relative w-10 h-6 rounded-3xl transition-all bg-line peer-checked:bg-success after:h-5 after:w-5 after:top-0.5 after:absolute after:left-0 after:ms-0.5 after:transition-all after:rounded-full after:bg-white peer-checked:after:left-4"></span>
+				</label>
+			</template>
+		</div>
+
+		{% if actions|default(false) %}
+			<div class="col-span-1 justify-self-end">
+				<div class="relative" @click.outside="$refs.context.removeAttribute('data-open')">
+
+					<button class="relative z-10" @click="$refs.context.toggleAttribute('data-open')">
+						<i class="text-2xl ti ti-dots-vertical text-content-dimmed hover:text-intermediate-content"></i>
+					</button>
+
+					<div class="menu" x-ref="context">
+						<ul>
+							<li>
+								<a :href="`admin/users/${ {{u}}.id}`" class="flex gap-2 items-center px-4 py-2 hover:no-underline hover:bg-intermediate">
+									<i class="ti ti-pencil"></i>
+
+									{{ p__('button', 'Edit') }}
+								</a>
+							</li>
+
+							<template x-if="{{u}}.id != '{{ user.id }}'">
+								<li>
+									<button class="flex gap-2 items-center px-4 py-2 w-full hover:no-underline hover:bg-intermediate" @click.prevent="currentResource = {{u}}; modal.open('delete-modal')">
+										<i class="ti ti-trash"></i>
+
+										{{ p__('button', 'Delete') }}
+									</button>
+								</li>
+							</template>
+						</ul>
+					</div>
+				</div>
+			</div>
+		{% endif %}
+	</div>
+{% else %}
+	<div class="grid relative grid-cols-12 gap-3 items-center p-3 box">
+		<div class="flex col-span-11 gap-3 items-center md:col-span-6">
+			<div class="avatar animate-pulse"></div>
+
+			<div class="flex flex-col gap-0.5">
+				<div class="w-32 py-0.5">
+					<div class="loading h-4"></div>
+				</div>
+
+				<div class="w-40 py-0.5">
+					<div class="loading h-3"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="hidden md:flex md:col-span-3 flex-col gap-0.5">
+			<div class="flex flex-col gap-0.5">
+				<div class="w-24 py-0.5">
+					<div class="loading h-4"></div>
+				</div>
+
+				<div class="w-28 py-0.5">
+					<div class="loading h-3"></div>
+				</div>
+			</div>
+		</div>
+
+		<div class="hidden md:block justify-self-end {{ actions|default(false) ? 'md:col-span-2' : 'md:col-span-3' }}">
+			<div class="flex items-center gap-2">
+				<div class="w-14 loading py-0.5">
+					<div class="loading h-4"></div>
+				</div>
+
+				<div class="inline-block w-10 h-6 rounded-3xl loading"></div>
+			</div>
+		</div>
+
+		{% if actions|default(false) %}
+			<div class="col-span-1 justify-self-end">
+				<i class="text-2xl ti ti-dots-vertical text-content-dimmed"></i>
+			</div>
+		{% endif %}
+	</div>
+{% endif %}

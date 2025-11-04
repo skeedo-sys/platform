@@ -1,0 +1,72 @@
+<div class="flex gap-4 items-center p-2 box bg-main {{ src is not defined ? 'animate-pulse' : '' }}">
+	<span class="flex justify-center items-center size-10 rounded-lg bg-intermediate text-intermediate-content">
+		<i class="text-2xl ti ti-music"></i>
+	</span>
+
+	<div class="grow">
+		{% if src is defined %}
+			<x-wave :src="{{ src }}" class="flex gap-2 items-center group" {{ attributes|default('')|raw }}>
+				<button type="button" play-pause class="text-content-dimmed">
+					<i class="text-2xl ti ti-player-play-filled group-[[state=loading]]:hidden group-[[state=loaded]]:hidden group-[[state=playing]]:hidden"></i>
+					<i class="text-2xl ti ti-player-pause-filled hidden group-[[state=playing]]:block"></i>
+
+					<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="20px" height="20px" viewbox="0 0 50 50" style="enable-background:new 0 0 50 50;" class="hidden group-[[state=loading]]:block group-[[state=loaded]]:block" xml:space="preserve">
+						<path fill="currentColor" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+							<animateTransform attributetype="xml" attributename="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatcount="indefinite"></animateTransform>
+						</path>
+					</svg>
+				</button>
+
+				<span process class="text-xs text-content-dimmed w-9 group-[[state=loading]]:hidden">
+					00:00
+				</span>
+
+				<div class="h-10 grow" wave></div>
+
+				<span duration class="text-xs text-content-dimmed w-9 group-[[state=loading]]:hidden">
+					00:00
+				</span>
+			</x-wave>
+		{% else %}
+			<div class="flex gap-2 items-center group" {{ attributes|default('')|raw }}>
+				<span class="text-content-dimmed">
+					<i class="text-2xl ti ti-player-play-filled group-[[state=loading]]:hidden group-[[state=loaded]]:hidden group-[[state=playing]]:hidden"></i>
+					<i class="text-2xl ti ti-player-pause-filled hidden group-[[state=playing]]:block"></i>
+
+					<svg version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="20px" height="20px" viewbox="0 0 50 50" style="enable-background:new 0 0 50 50;" class="hidden group-[[state=loading]]:block group-[[state=loaded]]:block" xml:space="preserve">
+						<path fill="currentColor" d="M25.251,6.461c-10.318,0-18.683,8.365-18.683,18.683h4.068c0-8.071,6.543-14.615,14.615-14.615V6.461z">
+							<animateTransform attributetype="xml" attributename="transform" type="rotate" from="0 25 25" to="360 25 25" dur="0.6s" repeatcount="indefinite"></animateTransform>
+						</path>
+					</svg>
+				</span>
+
+				<span process class="text-xs text-content-dimmed w-9 group-[[state=loading]]:hidden">
+					00:00
+				</span>
+
+				<div class="h-10 grow flex items-center justify-center relative">
+					<div class="h-px w-full bg-line"></div>
+					<span class="absolute px-2 bg-main left-1/2 top-1/2 -translate-1/2 text-xs text-content-dimmed">
+						{{ __('Converting speech to text...') }}
+					</span>
+				</div>
+
+				<span duration class="text-xs text-content-dimmed w-9 group-[[state=loading]]:hidden">
+					00:00
+				</span>
+			</div>
+		{% endif %}
+	</div>
+
+	{% if download|default(false) %}
+		{% if src is defined %}
+			<a :href="{{ src }}" target="_blank" download class="flex size-10 items-center justify-center transition-all text-content-dimmed hover:text-content">
+				<i class="text-2xl ti ti-download"></i>
+			</a>
+		{% else %}
+			<span class="flex size-10 items-center justify-center transition-all text-content-dimmed hover:text-content">
+				<i class="text-2xl ti ti-download"></i>
+			</span>
+		{% endif %}
+	{% endif %}
+</div>
