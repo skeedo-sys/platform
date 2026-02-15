@@ -1,0 +1,85 @@
+{% extends "/layouts/main.twig" %}
+{% set active_menu = '/admin/settings' %}
+
+{% set xdata = 'settings' %}
+{% block title p__('title', 'Embeddings settings')|title %}
+
+{% block template %}
+	<div>
+		{% include "snippets/back.twig" with {link: 'admin/settings', label: 'Settings'} %}
+
+		<h1 class="mt-4">{{ p__('heading', 'Embeddings settings') }}</h1>
+	</div>
+
+	<x-form>
+		<form class="flex flex-col gap-8" @submit.prevent="submit" x-ref="form">
+			<div class="flex flex-col gap-2">
+				<section class="grid gap-6 box" data-density="comfortable">
+					<h2>{{ p__('heading', 'Configuration') }}</h2>
+
+					<div class="grid gap-6 md:grid-cols-2">
+						<div>
+							<label for="embeddings.adapter">
+								{{ p__('label', 'Adapter') }}
+							</label>
+
+							<select id="embeddings.adapter" name="embeddings[adapter]" class="mt-2 input">
+								{% for key, adapter in vector_stores %}
+									<option value="{{ key }}" {{ option.embeddings.adapter|default(null) == key ? 'selected' : '' }}>
+										{{ adapter.name }}
+									</option>
+								{% endfor %}
+							</select>
+
+							<ul class="info mt-2">
+								<li>
+									{{ __('Selected adapter must be enabled') }}
+								</li>
+
+								<li>
+									{{ __("Switching embeddings adapter won't synchronize current vector embeddings.") }}
+								</li>
+							</ul>
+						</div>
+
+						<div>
+							<label>{{ p__('label', 'Embeddings model') }}</label>
+
+							<select class="mt-2 input" name="embeddings[model]">
+								{% for service in config.model.registry.directory %}
+									{% for model in service.models %}
+										{% if model.type == 'embedding' %}
+											<option value="{{ model.key }}" {{ option.embeddings.model|default(null) == model.key ? 'selected' : '' }}>
+												{{ service.name }}
+												/
+												{{ model.name }}
+											</option>
+										{% endif %}
+									{% endfor %}
+								{% endfor %}
+							</select>
+
+							<ul class="info mt-2">
+								<li>
+									{{ __('Selected model will be used to vectorize files') }}
+								</li>
+							</ul>
+						</div>
+					</div>
+				</section>
+			</div>
+
+			<div class="flex gap-4 justify-end">
+				<a href="admin/settings" class="button button-outline">
+					{{ p__('button', 'Cancel') }}
+				</a>
+
+				<button type="submit" class="button button-accent" :processing="isProcessing">
+					{% include "/snippets/spinner.twig" %}
+
+					{{ p__('button', 'Save changes') }}
+				</button>
+			</div>
+		</form>
+	</x-form>
+{% endblock %}

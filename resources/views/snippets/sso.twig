@@ -1,0 +1,26 @@
+{% set count = identity_providers | length %}
+{% if count > 0 %}
+	<div class="relative flex justify-center text-xs text-content-dimmed before:absolute before:left-0 before:top-1/2 before:w-full before:h-px before:bg-line-dimmed">
+		<span class="relative z-10 px-4 bg-main">{{ __('or continue with') }}</span>
+	</div>
+
+	<div class="flex flex-wrap items-center gap-2">
+		{% for key, provider in identity_providers %}
+			<a href="{{ provider.getAuthUrl() }}" class="flex-1 p-0 button button-outline min-w-[3rem] relative group">
+				<img src="{{ provider.getIconSrc() }}" alt="{{ provider.getName() }}" class="object-contain w-6 h-6">
+
+				{% if count < 3 %}
+					{{ provider.getName() }}
+				{% endif %}
+
+				{% if type|default(null) == 'login' %}
+					<template x-if="lastAuthMethod == '{{ key }}'">
+						<span class="absolute start-1/2 top-full badge pointer-events-none -translate-1/2 mt-1 opacity-75 group-hover:opacity-100">
+							{{ __('Last used') }}
+						</span>
+					</template>
+				{% endif %}
+			</a>
+		{% endfor %}
+	</div>
+{% endif %}

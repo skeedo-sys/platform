@@ -1,0 +1,51 @@
+<template x-if="users === null">
+	<section class="flex flex-col gap-6 box" data-density="comfortable">
+		<div class="flex gap-2 items-center">
+			<h2>{{ p__('heading', 'Users') }}</h2>
+
+			<a class="badge" :href="`admin/users?sort=created_at:desc`">
+				{{ p__('button', 'View all') }}
+			</a>
+		</div>
+
+		<div>
+			<div class="hidden md:grid grid-cols-12 gap-3 items-center px-3 py-2 text-content-dimmed text-xs">
+				<div class="col-span-6">{{ p__('label', 'User') }}</div>
+				<div class="col-span-3">{{ p__('label', 'Created') }}</div>
+				<div class="col-span-3 justify-self-end">{{ p__('label', 'Status') }}</div>
+			</div>
+
+			<div class="text-sm flex flex-col gap-1">
+				{% for i in range(1,5) %}
+					{% include "/snippets/admin/user.twig" with { actions: false } %}
+				{% endfor %}
+			</div>
+		</div>
+	</section>
+</template>
+
+<template x-if="users !== null && users.length > 0">
+	<section class="flex flex-col gap-6 box" data-density="comfortable" x-data="list('/users')">
+		<div class="flex gap-2 items-center">
+			<h2>{{ p__('heading', 'Users') }}</h2>
+
+			<a class="badge" :href="`admin/users?sort=created_at:desc`">
+				{{ p__('button', 'View all') }}
+			</a>
+		</div>
+
+		<div>
+			<div class="hidden md:grid grid-cols-12 gap-3 items-center px-3 py-2 text-content-dimmed text-xs">
+				<div class="col-span-6">{{ p__('label', 'User') }}</div>
+				<div class="col-span-3">{{ p__('label', 'Created') }}</div>
+				<div class="col-span-3 justify-self-end">{{ p__('label', 'Status') }}</div>
+			</div>
+
+			<div class="text-sm flex flex-col gap-1">
+				<template x-for="user in users" :key="user.id">
+					{% include "/snippets/admin/user.twig" with { u: 'user', actions: false } %}
+				</template>
+			</div>
+		</div>
+	</section>
+</template>

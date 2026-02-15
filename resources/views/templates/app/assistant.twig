@@ -1,0 +1,600 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/app/assistants' %}
+
+{% set xdata %}
+assistant({{ (assistant is defined ? assistant : null)|json_encode }})
+{% endset %}
+
+{% block title (assistant is defined ? p__('title', 'Edit assistant') : p__('title', 'New assistant'))|title %}
+
+{% block template %}
+	<x-form>
+		<form class="flex flex-col gap-8" @submit.prevent="submit">
+			<div>
+				{% include "snippets/back.twig" with {link: 'app/assistants', label: 'Assistants'} %}
+
+				<h1 class="mt-4">
+					<span x-show="!assistant">{{ p__('heading', 'Create assistant') }}</span>
+					<span x-show="assistant">
+						{{ p__('heading', 'Edit assistant') }}:
+						<span class="font-normal text-intermediate-content" x-text="assistant?.name"></span>
+					</span>
+				</h1>
+
+				<template x-if="assistant">
+					<div class="mt-2">
+						<x-uuid x-text="assistant.id"></x-uuid>
+					</div>
+				</template>
+			</div>
+
+			<div class="flex flex-col gap-2">
+				<template x-if="assistant && !isEditing">
+					<section class="flex flex-col gap-6 box" data-density="comfortable">
+						<div class="flex gap-6 justify-between items-center">
+							<div class="flex items-center gap-4">
+								<x-avatar icon="box" class="size-12" :src=" model.file ? url.createobjecturl(model.file) : assistant?.avatar"></x-avatar>
+
+								<div>
+									<div class="flex gap-2 items-center">
+										<h2 x-text="assistant.name"></h2>
+										<span class="badge">
+											<template x-if="assistant.visibility == 0">
+												<span class="flex gap-1 items-center" x-tooltip.raw="{{ __('Accessible only by you') }}">
+													<i class="ti ti-lock"></i>
+													{{ p__('audience', 'Private') }}
+												</span>
+											</template>
+
+											<template x-if="assistant.visibility == 1">
+												<span class="flex gap-1 items-center" x-tooltip.raw="{{ __('Accessible by team members') }}">
+													<i class="ti ti-building"></i>
+													{{ p__('audience', 'Workspace') }}
+												</span>
+											</template>
+
+											<template x-if="assistant.visibility == 2">
+												<span class="flex gap-1 items-center" x-tooltip.raw="{{ __('Accessible by anyone') }}">
+													<i class="ti ti-world"></i>
+													{{ p__('audience', 'Public') }}
+												</span>
+											</template>
+										</span>
+									</div>
+
+									<p class="text-sm text-content-dimmed">
+										{{ __('Created on %s', '<x-time :datetime="assistant.created_at"></x-time>')|raw }}
+									</p>
+								</div>
+							</div>
+
+							<button type="button" class="button button-sm button-outline" @click="isEditing = true">
+								{{ p__('button', 'Edit details') }}
+							</button>
+						</div>
+
+						<hr>
+
+						<div class="flex flex-wrap gap-y-6 gap-x-20 items-center">
+							<div class="min-w-min">
+								<div class="label">{{ p__('label', 'Expertise') }}</div>
+								<template x-if="assistant.expertise">
+									<div x-text="assistant.expertise"></div>
+								</template>
+								<template x-if="!assistant.expertise">
+									<div class="text-content-dimmed" x-text="`{{ __('Not set') }}`"></div>
+								</template>
+							</div>
+
+							<div class="min-w-min">
+								<div class="label">{{ p__('label', 'Model') }}</div>
+
+								<template x-if="assistant.model">
+									<div x-text="assistant.model"></div>
+								</template>
+								<template x-if="!assistant.model">
+									<div class="text-content-dimmed" x-text="`{{ __('Not set') }}`"></div>
+								</template>
+							</div>
+
+							<template x-if="assistant.description">
+								<div class="min-w-min">
+									<div class="label">{{ p__('label', 'Description') }}</div>
+									<div class="line-clamp-1" x-text="assistant.description"></div>
+								</div>
+							</template>
+						</div>
+
+						<hr>
+
+						<div>
+							<a :href="`app/chat/${assistant.id}`" class="button button-sm">
+								<i class="ti ti-message-2-filled"></i>
+								{{ p__('button', 'Start conversation') }}
+							</a>
+						</div>
+					</section>
+				</template>
+
+				<template x-if="!assistant || isEditing">
+					<section class="grid gap-6 md:grid-cols-2 box" data-density="comfortable">
+						<h2 class="col-span-2">{{ p__('heading', 'Details') }}</h2>
+
+						<div class="relative col-span-2 p-6 mt-2 box" x-data="{file:null}">
+							<div class="flex relative z-10 flex-col gap-6 justify-between items-start sm:flex-row">
+								<div class="flex gap-2 items-center">
+									<x-avatar icon="box" :src="model.file ? URL.createObjectURL(model.file) : assistant?.avatar"></x-avatar>
+
+									<div>
+										<div class="font-bold" x-text="model.name || assistant?.name || `{{ __('Assistant Name') }}`"></div>
+
+										<div class="text-xs text-content-dimmed" x-text="model.expertise || assistant?.expertise || `{{ __('Expertise') }}`"></div>
+									</div>
+								</div>
+
+								<button type="button" class="w-full button button-sm button-dimmed sm:w-auto" @click="$refs.file.click()">{{ p__('button', 'Browse files') }}</button>
+							</div>
+
+							<input type="file" @change="model.file = $refs.file.files[0];" class="hidden" accept="image/*" x-ref="file">
+						</div>
+
+						<div>
+							<label for="name">{{ p__('label', 'Name') }}</label>
+							<input type="text" id="name" class="mt-2 input" autocomplete="off" :placeholder="assistant?.name || `{{ __('Mail Guru') }}`" required x-model="model.name" maxlength="64"/>
+						</div>
+
+						<div>
+							<label for="expertise">{{ p__('label', 'Expertise') }}</label>
+							<input type="text" id="expertise" class="mt-2 input" autocomplete="off" :placeholder="assistant?.expertise || `{{ __('Email assistant') }}`" x-model="model.expertise" maxlength="128"/>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="description">{{ p__('label', 'Description') }}</label>
+							<input type="text" id="description" class="mt-2 input" autocomplete="off" :placeholder="assistant?.description || 'Add a short description about what this assistant does'" x-model="model.description" maxlength="255">
+
+							<ul class="info mt-2">
+								<li>
+									{{ __("The description will be visible to anyone who uses this assistant.") }}
+								</li>
+							</ul>
+						</div>
+
+						<div class="md:col-span-2">
+							<label for="instructions">{{ p__('label', 'Instructions') }}</label>
+
+							<textarea id="instructions" rows="5" class="mt-2 input" autocomplete="off" :placeholder="assistant?.instructions || 'What does this assistant do? How does it behave? What should it avoid doing?'" x-model="model.instructions"></textarea>
+
+							<ul class="info mt-2">
+								<li>
+									{{ __("Provide clear instructions for the assistant. Describe what it does, how it behaves, and what it should avoid doing.") }}
+								</li>
+								<li>
+									<strong class="text-content">{{ __('Important') }}:</strong>
+									{{ __("Conversations with this assistant can potentially include part or all of the instructions you provide.") }}
+								</li>
+							</ul>
+						</div>
+
+						<div>
+							<label for="model">{{ p__('label', 'Visibility') }}</label>
+
+							<select class="mt-2 input" id="visibility" x-model="model.visibility">
+								<option value="2">{{ p__('input-value', 'Public') }}</option>
+								<option value="1">{{ p__('input-value', 'Workspace') }}</option>
+								<option value="0">{{ p__('input-value', 'Only me') }}</option>
+							</select>
+
+							<ul class="info mt-2">
+								<template x-if="model.visibility == 2">
+									<li>
+										{{ __("Anyone can use this assistant.") }}
+									</li>
+								</template>
+
+								<template x-if="model.visibility == 1">
+									<li>
+										{{ __("Anyone within the workspace can use this assistant.") }}
+									</li>
+								</template>
+
+								<template x-if="model.visibility == 0">
+									<li>
+										{{ __("Only you can use this assistant.") }}
+									</li>
+								</template>
+							</ul>
+						</div>
+
+						<div>
+							<label for="model">{{ p__('label', 'Recommended model') }}</label>
+
+							<select class="mt-2 input" id="model" x-model="model.model">
+								<option value="">
+									{{ p__('input-value', 'None') }}
+								</option>
+
+								{% for service in config.model.registry.directory %}
+									{% for model in service.models %}
+										{% if model.type == 'llm' %}
+											<option value="{{ model.key }}">
+												{{ service.name }}
+												/
+												{{ model.name }}
+											</option>
+										{% endif %}
+									{% endfor %}
+								{% endfor %}
+							</select>
+
+							<ul class="info mt-2">
+								<li>
+									{{ __("The recommended model will be automatically used when users start a chat with the assistant, if their workspace has access to it.") }}
+								</li>
+								<li>
+									{{ __("If the recommended model is not accessible, an available model will be selected automatically.") }}
+								</li>
+								<li>
+									{{ __("Users can always switch to a different model through the chat settings.") }}
+								</li>
+							</ul>
+						</div>
+					</section>
+				</template>
+
+				<template x-if="!isEditing">
+					<section class="grid gap-6 box" data-density="comfortable" x-show="!isEditing">
+						<h2>{{ p__('heading', 'Files') }}</h2>
+
+						<template x-if="resources.filter(r => r.type === 'file').length > 0 || assistant?.dataset.filter(item => item.object === 'file_unit').length > 0">
+							<div class="grid grid-cols-1 gap-1">
+								<template x-for="unit in assistant?.dataset.filter(item => item.object === 'file_unit')">
+									<div class="flex gap-2 items-center p-2 pe-4 box min-w-72 hover:border-line group" :key="unit.id" x-data>
+										<div class="flex justify-center items-center w-10 h-10 shrink-0">
+											<i class="text-2xl ti ti-file-description"></i>
+										</div>
+
+										<div class="min-w-0 grow">
+											<div class="text-sm font-bold truncate" x-text="unit.title"></div>
+
+											<div class="mt-0.5 text-xs truncate text-content-dimmed">
+												<span class="uppercase" x-text="unit.file.extension"></span>
+												·
+												<x-filesize :data-value="unit.file.size"></x-filesize>
+												·
+												<x-credit fraction="4" :data-value="unit.cost" format="{{ __(":count credits") }}" x-tooltip="unit.cost"></x-credit>
+												·
+												{{ __('Ready to use') }}
+											</div>
+										</div>
+
+										<div class="relative shrink-0" @click.outside="$refs.context.removeAttribute('data-open')">
+
+											<button type="button" class="relative z-10" @click="$refs.context.toggleAttribute('data-open')">
+												<i class="text-2xl ti ti-dots-vertical text-content-dimmed hover:text-intermediate-content"></i>
+											</button>
+
+											<div class="menu" x-ref="context">
+												<ul>
+													<li>
+														<a :href="unit.file.url" download target="_blank" class="flex gap-2 items-center px-4 py-2 hover:no-underline hover:bg-intermediate">
+															{{ p__('button', 'Download') }}
+														</a>
+													</li>
+
+													<li>
+														<button class="flex gap-2 items-center px-4 py-2 w-full hover:no-underline hover:bg-intermediate" @click.prevent="currentResource = unit; modal.open('delete-modal')">
+															{{ p__('button', 'Delete') }}
+														</button>
+													</li>
+												</ul>
+											</div>
+										</div>
+									</div>
+								</template>
+
+								<template x-for="file in resources.filter(r => r.type === 'file')">
+									<div class="flex gap-2 items-center p-2 pe-4 box min-w-72 hover:border-line" :class="['pending', 'error'].includes(file.status) ? 'opacity-50 hover:opacity-100' : null" :key="file.id">
+										<div class="flex justify-center items-center w-10 h-10 shrink-0">
+											<i class="text-2xl ti ti-file-description"></i>
+										</div>
+
+										<div class="min-w-0 grow">
+											<div class="text-sm font-bold truncate" x-text="file.name"></div>
+
+											<div class="mt-0.5 text-xs truncate text-content-dimmed">
+												<span class="uppercase" x-text="file.extension"></span>
+												·
+												<x-filesize :data-value="file.size"></x-filesize>
+												·
+												<template x-if="file.status == 'uploading'">
+													<span class="text-content animate-pulse">{{ __('Processing') }}</span>
+												</template>
+
+												<template x-if="file.status == 'pending'">
+													<span class="text-orange-500">{{ __('Pending') }}</span>
+												</template>
+
+												<template x-if="file.status == 'error'">
+													<span class="inline-flex gap-1 items-center text-failure">
+														{{ __('Error') }}
+														<i class="text-sm ti ti-alert-circle" x-tooltip="file.error"></i>
+													</span>
+												</template>
+											</div>
+										</div>
+
+										<div class="text-content-dimmed shrink-0">
+											<template x-if="file.status != 'uploading'">
+												<button type="button" @click="removeResource(file)">
+													<i class="text-2xl ti ti-trash" x-tooltip.raw="{{ __('Remove') }}"></i>
+												</button>
+											</template>
+
+											<template x-if="file.status == 'uploading'">
+												{% include "snippets/spinner.twig" %}
+											</template>
+										</div>
+									</div>
+								</template>
+							</div>
+						</template>
+
+						<div class="flex relative flex-col gap-4 items-center p-10 group">
+							<svg class="absolute top-0 left-0 w-full h-full rounded-lg text-line group-hover:text-content-dimmed group-data-selected:hidden stroke-2 stroke-current" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+								<rect cx="56" width="100%" height="100%" stroke-dasharray="4 4" rx="8" ry="8"/>
+							</svg>
+
+							<i class="text-3xl text-content-dimmed ti ti-upload"></i>
+
+							<div class="flex flex-col gap-1 items-center">
+								<h3>{{ p__('heading', 'Import files') }}</h3>
+								<p class="text-sm text-content-dimmed">
+									{{ p__('info', 'Drag and drop files here or click to browse.') }}
+								</p>
+							</div>
+
+							<p class="text-xs text-content-dimmed">
+								{{ p__('info', 'Supported file types: pdf, csv, json, txt, xml, doc, docx, odt') }}
+							</p>
+
+							<button type="button" class="absolute inset-0 z-10" @click="$refs.file.click()"></button>
+
+							<x-dropzone>
+								<input type="file" @change="pushFiles($refs.file.files)" name="file" multiple class="hidden" x-ref="file" accept=".pdf,.json,.csv,text/*,.doc,.docx,.odt,.xml,.yml,.yaml">
+
+								<div class="flex flex-col gap-6 items-center">
+									<i class="text-6xl ti ti-upload text-content-dimmed"></i>
+									<div class="flex flex-col gap-2 text-center max-w-[30rem]">
+										<h2>{{ p__('heading', 'Drop files here') }}</h2>
+
+										<div class="text-sm text-content-dimmed">
+											{{ p__('info', 'Supported file types: pdf, csv, json, txt, doc, docx, odt') }}
+										</div>
+									</div>
+								</div>
+							</x-dropzone>
+						</div>
+					</section>
+
+				</template>
+				<template x-if="!isEditing">
+					<section class="grid gap-6 box" data-density="comfortable" x-show="!isEditing">
+						<div class="flex justify-between items-center">
+							<h2>{{ p__('heading', 'Web pages') }}</h2>
+
+							<button type="button" class="w-8 h-8 rounded-full button button-sm button-dimmed" x-tooltip.raw="{{ __('Add new page') }}" @click="modal.open('new-page')">
+								<i class="ti ti-plus"></i>
+							</button>
+						</div>
+
+						<div>
+							<template x-if="(!assistant || (assistant?.dataset && assistant.dataset.filter(item => item.object === 'link_unit').length == 0)) && resources.filter(r => r.type === 'page').length == 0">
+								<div class="text-sm text-content-dimmed">
+									{{ p__('info', 'No pages added yet.') }}
+								</div>
+							</template>
+
+							<template x-if="(assistant?.dataset && assistant.dataset.filter(item => item.object === 'link_unit').length > 0) || resources.filter(r => r.type === 'page').length > 0">
+								<div class="grid grid-cols-1 gap-1">
+									<template x-for="unit in assistant?.dataset.filter(item => item.object === 'link_unit')">
+										<div class="flex gap-2 items-center p-2 pe-4 box min-w-72 hover:border-line group" :key="unit.id" x-data>
+											<div class="flex justify-center items-center w-10 h-10 shrink-0">
+												<i class="text-2xl ti ti-link"></i>
+											</div>
+
+											<div class="min-w-0 grow">
+												<div class="text-sm font-bold truncate">
+													<a :href="unit.url" target="_blank" x-text="unit.title" class="hover:underline"></a>
+												</div>
+
+												<div class="mt-0.5 text-xs truncate text-content-dimmed">
+													<span>
+														{{ __('Date:')}}
+														<x-time :datetime="unit.created_at" data-type="date"></x-time>
+													</span>
+													·
+													<x-credit fraction="4" :data-value="unit.cost" format="{{ __(":count credits") }}" x-tooltip="unit.cost"></x-credit>
+													·
+													{{ __('Ready to use') }}
+												</div>
+											</div>
+
+											<div class="relative shrink-0" @click.outside="$refs.context.removeAttribute('data-open')">
+
+												<button type="button" class="relative z-10" @click="$refs.context.toggleAttribute('data-open')">
+													<i class="text-2xl ti ti-dots-vertical text-content-dimmed hover:text-intermediate-content"></i>
+												</button>
+
+												<div class="menu" x-ref="context">
+													<ul>
+														<li>
+															<button class="flex gap-2 items-center px-4 py-2 w-full hover:no-underline hover:bg-intermediate" @click.prevent="currentResource = unit; modal.open('delete-modal')">
+																{{ p__('button', 'Delete') }}
+															</button>
+														</li>
+													</ul>
+												</div>
+											</div>
+										</div>
+									</template>
+
+									<template x-for="page in resources.filter(r => r.type === 'page')">
+										<div class="flex gap-2 items-center p-2 pe-4 box min-w-72 hover:border-line" :class="['pending', 'error'].includes(page.status) ? 'opacity-50 hover:opacity-100' : null" :key="page.id">
+											<div class="flex justify-center items-center w-10 h-10 shrink-0">
+												<i class="text-2xl ti ti-link"></i>
+											</div>
+
+											<div class="min-w-0 grow">
+												<div class="text-sm font-bold truncate" x-text="page.url"></div>
+
+												<div class="mt-0.5 text-xs truncate text-content-dimmed">
+													<template x-if="page.status == 'pending'">
+														<span class="text-orange-500">{{ __('Pending') }}</span>
+													</template>
+
+													<template x-if="page.status == 'error'">
+														<span class="inline-flex gap-1 items-center text-failure">
+															{{ __('Error') }}
+															<i class="text-sm ti ti-alert-circle" x-tooltip="page.error"></i>
+														</span>
+													</template>
+												</div>
+											</div>
+
+											<div class="text-content-dimmed shrink-0">
+												<template x-if="page.status != 'uploading'">
+													<button type="button" @click="removeResource(page)">
+														<i class="text-2xl ti ti-trash" x-tooltip.raw="{{ __('Remove') }}"></i>
+													</button>
+												</template>
+
+												<template x-if="page.status == 'uploading'">
+													{% include "snippets/spinner.twig" %}
+												</template>
+											</div>
+										</div>
+									</template>
+								</div>
+							</template>
+						</div>
+					</section>
+				</template>
+
+				<template x-if="assistant && !isEditing">
+					<section class="flex flex-col gap-6 box" data-density="comfortable">
+						<h2>{{ p__('heading', 'Danger zone') }}</h2>
+
+						<div class="flex justify-between items-center">
+							<div class="">
+								<label>{{ p__('label', 'Delete assistant') }}</label>
+								<div>
+									{{ __('Once you delete an assistant, there is no going back. Please be certain.') }}
+								</div>
+							</div>
+
+							<button type="button" class="button button-outline button-sm text-failure" @click="modal.open('delete-assistant-modal')">
+								{{ p__('button', 'Delete assistant') }}
+							</button>
+						</div>
+					</section>
+				</template>
+			</div>
+
+			<template x-if="assistant && isEditing">
+				<div class="flex flex-col gap-2 justify-end md:col-span-2">
+					<button type="submit" class="button w-full" :processing="isProcessing">
+						{% include "/snippets/spinner.twig" %}
+						{{ p__('button', 'Save changes') }}
+					</button>
+
+					<button type="button" class="button button-outline w-full" @click="isEditing = false">
+						{{ p__('button', 'Cancel') }}
+					</button>
+				</div>
+			</template>
+
+			<template x-if="!assistant">
+				<div>
+					<button type="submit" class="button w-full" :processing="isProcessing">
+						{% include "/snippets/spinner.twig" %}
+
+						{{ p__('button', 'Create assistant') }}
+					</button>
+				</div>
+			</template>
+		</form>
+	</x-form>
+
+	<modal-element name="new-page">
+		<x-form>
+			<form class="flex flex-col gap-8 modal" @submit.prevent="addPage($refs.url.value)">
+				<div class="flex justify-between items-center">
+					<h2 class="text-xl">{{ p__('heading', 'New page') }}</h2>
+
+					<button class="flex justify-center items-center w-8 h-8 rounded-full border border-transparent bg-line-dimmed hover:border-line" @click="modal.close()" type="button">
+						<i class="text-xl ti ti-x"></i>
+					</button>
+				</div>
+
+				<div>
+					<label for="new-page">{{ p__('label', 'URL') }}</label>
+					<input type="url" class="mt-2 input" id="new-page" required placeholder="https://example.com" x-ref="url">
+				</div>
+
+				<div class="flex">
+					<button type="submit" class="w-full button" :processing="isProcessing">
+						{% include "/snippets/spinner.twig" %}
+
+						{{ p__('button', 'Add page') }}
+					</button>
+				</div>
+			</form>
+		</x-form>
+	</modal-element>
+
+	<template x-if="assistant">
+		<modal-element name="delete-assistant-modal">
+			<form class="modal" @submit.prevent="remove()">
+				<div class="flex relative justify-center items-center mx-auto w-24 h-24 rounded-full text-failure/25">
+
+					<svg class="absolute top-0 left-0 w-full h-full" width="112" height="112" viewbox="0 0 112 112" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<circle cx="56" cy="56" r="55.5" stroke="currentColor" stroke-dasharray="8 8"/>
+					</svg>
+
+					<div class="flex justify-center items-center w-20 h-20 text-4xl rounded-full transition-all bg-failure/25 text-failure">
+						<i class="text-4xl ti ti-trash"></i>
+					</div>
+				</div>
+
+				<div class="mt-4 text-lg text-center"></div>
+
+				<div class="flex flex-col gap-2 items-center text-center">
+					<div class="text-lg text-center">
+						{{ __('Are you sure you want to delete this assistant?') }}
+					</div>
+
+					<p class="text-sm text-content-dimmed">
+						{{ __("This action is permanent and cannot be undone. Existing conversations with this assistant will be preserved.") }}
+					</p>
+				</div>
+
+				<div class="flex gap-4 justify-center items-center mt-10">
+					<button class="button button-outline" @click="modal.close()" type="button">
+						{{ p__('button', 'Cancel') }}
+					</button>
+
+					<button class="button button-failure" type="submit" :processing="isProcessing">
+						{% include "/snippets/spinner.twig" %}
+						{{ p__('button', 'Delete assistant') }}
+					</button>
+				</div>
+			</form>
+		</modal-element>
+	</template>
+
+	{% include "sections/delete-modal.twig" with { 
+    message: __('Are you sure you want to delete this file?'),
+    title: '`${currentResource.title}`'
+  } %}
+{% endblock %}

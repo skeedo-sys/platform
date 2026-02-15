@@ -1,0 +1,237 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/app/assistants' %}
+{% set sort = [] %}
+
+{% set xdata %}
+list("assistants",
+{{ sort|json_encode|raw }},
+25,
+true,
+"assistant")
+{% endset %}
+
+{% block title p__('title', 'Assistants')|title %}
+
+{% block template %}
+	{# Header #}
+	<div>
+		<a href="app" class="inline-flex gap-1 items-center text-sm rounded-lg text-content-dimmed hover:text-content">
+			<i class="text-lg ti ti-square-rounded-arrow-left-filled rtl:rotate-180"></i>
+
+			{{ p__('button', 'Dashboard') }}
+		</a>
+
+		<div class="flex gap-4 justify-between items-center mt-4">
+			<div>
+				<div class="flex gap-2 items-center">
+					<h1>{{ p__('heading', 'Assistants') }}</h1>
+
+					<template x-if="total !== null">
+						<div class="text-sm text-content-dimmed md:hidden">
+							(<span x-text="total"></span>)
+						</div>
+					</template>
+				</div>
+
+				<p class="text-content-dimmed">
+					{{ __('Choose one of the AI assistants to chat with') }}
+				</p>
+			</div>
+
+			{% if features.custom_assistants %}
+				<a href="/app/assistants/new" class="button button-sm pe-3">
+					<i class="ti ti-plus"></i>
+					{{ p__('button', 'Create') }}
+				</a>
+			{% elseif option.features.chat.custom_assistants.is_enabled|default(false)  %}
+				<div x-tooltip.raw="{{ __('Custom assistants limit reached for the workspace.') }}">
+					<button type="button" disabled class="w-full button button-sm">
+						<i class="ti ti-lock"></i>
+						{{ p__('button', 'Create') }}
+					</button>
+				</div>
+			{% endif %}
+		</div>
+	</div>
+
+	{# Filters #}
+	{% include "/snippets/filters.twig" %}
+
+	{# List #}
+	<div class="group/list" data-state="initial" :data-state="state" x-data="assistants">
+		<div class="hidden group-data-[state=empty]/list:block">
+			{% include "sections/empty.twig" with { title: p__('heading', 'Empty result set'), message: __('There are no assistants yet.'), reset: __('There are no assistant matching your search.') } %}
+		</div>
+
+		<template x-if="!fetched && !showSearchResults">
+			<div class="flex flex-col gap-8">
+				{% for i in range(1,4) %}
+					<div class="flex flex-col gap-4">
+						<div>
+							<div class="loading h-6 w-20"></div>
+							<div class="loading h-5 my-1 w-40"></div>
+						</div>
+
+						<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+							{% for i in range(1,3) %}
+								{% include "/snippets/cards/assistant.twig" with {placeholder:true} only %}
+							{% endfor %}
+						</div>
+					</div>
+				{% endfor %}
+			</div>
+		</template>
+
+		<template x-if="fetched && !showSearchResults">
+			<div class="flex flex-col gap-8 group-data-[state=empty]/list:hidden">
+				<template x-if="list.private.resources.length > 0">
+					<div class="flex flex-col gap-4">
+						<div>
+							<h2>{{ __('My assistants') }}</h2>
+							<p class="text-content-dimmed">{{ __('Assistants created by you') }}</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+							<template x-for="assistant in list.private.resources" :key="assistant.id">
+								{% include "/snippets/cards/assistant.twig" only %}
+							</template>
+
+							<template x-if="list.private.hasMore">
+								<button class="box flex flex-col items-center justify-center gap-2 opacity-75 hover:opacity-100 min-h-40" :class="list.system.isLoading ? 'animate-pulse' : ''" @click="loadMore('private')" :processing="list.private.isLoading">
+									{% include "snippets/spinner.twig" with {size: '24px'} %}
+
+									<template x-if="!list.private.isLoading">
+										<i class="text-2xl ti ti-plus"></i>
+									</template>
+
+									<span class="text-sm font-bold">
+										{{ p__('button', 'See more') }}
+									</span>
+								</button>
+							</template>
+						</div>
+
+					</div>
+				</template>
+
+				<template x-if="list.team.resources.length > 0">
+					<div class="flex flex-col gap-4">
+						<div>
+							<h2>{{ __('From my team') }}</h2>
+							<p class="text-content-dimmed">{{ __('Assistants shared by other members of your workspace.') }}</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+							<template x-for="assistant in list.team.resources" :key="assistant.id">
+								{% include "/snippets/cards/assistant.twig" only %}
+							</template>
+
+							<template x-if="list.team.hasMore">
+								<button class="box flex flex-col items-center justify-center gap-2 opacity-75 hover:opacity-100 min-h-40" :class="list.system.isLoading ? 'animate-pulse' : ''" @click="loadMore('team')" :processing="list.team.isLoading">
+									{% include "snippets/spinner.twig" with {size: '24px'} %}
+
+									<template x-if="!list.team.isLoading">
+										<i class="text-2xl ti ti-plus"></i>
+									</template>
+
+									<span class="text-sm font-bold">
+										{{ p__('button', 'See more') }}
+									</span>
+								</button>
+							</template>
+						</div>
+					</div>
+				</template>
+
+				<template x-if="list.community.resources.length > 0">
+					<div class="flex flex-col gap-4">
+						<div>
+							<h2>{{ __('By the community') }}</h2>
+							<p class="text-content-dimmed">{{ __('Discover assistants created and shared by the global community.') }}</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+							<template x-for="assistant in list.community.resources" :key="assistant.id">
+								{% include "/snippets/cards/assistant.twig" only %}
+							</template>
+
+							<template x-if="list.community.hasMore">
+								<button class="box flex flex-col items-center justify-center gap-2 opacity-75 hover:opacity-100 min-h-40" :class="list.system.isLoading ? 'animate-pulse' : ''" @click="loadMore('community')" :processing="list.community.isLoading">
+									{% include "snippets/spinner.twig" with {size: '24px'} %}
+
+									<template x-if="!list.community.isLoading">
+										<i class="text-2xl ti ti-plus"></i>
+									</template>
+
+									<span class="text-sm font-bold">
+										{{ p__('button', 'See more') }}
+									</span>
+								</button>
+							</template>
+						</div>
+					</div>
+				</template>
+
+				<template x-if="list.system.resources.length > 0">
+					<div class="flex flex-col gap-4">
+						<div>
+							<h2>{{ __('Featured') }}</h2>
+							<p class="text-content-dimmed">{{ __('Highlighted assistants curated by the platform team.') }}</p>
+						</div>
+
+						<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+							<template x-for="assistant in list.system.resources" :key="assistant.id">
+								{% include "/snippets/cards/assistant.twig" only %}
+							</template>
+
+							<template x-if="list.system.hasMore">
+								<button class="box flex flex-col items-center justify-center gap-2 opacity-75 hover:opacity-100 min-h-40" :class="list.system.isLoading ? 'animate-pulse' : ''" @click="loadMore('system')" :processing="list.system.isLoading">
+									{% include "snippets/spinner.twig" with {size: '24px'} %}
+
+									<template x-if="!list.system.isLoading">
+										<i class="text-2xl ti ti-plus"></i>
+									</template>
+
+									<span class="text-sm font-bold">
+										{{ p__('button', 'See more') }}
+									</span>
+								</button>
+							</template>
+						</div>
+					</div>
+				</template>
+			</div>
+		</template>
+
+		<template x-if="isLoading && showSearchResults">
+			<div class="grid grid-cols-2 gap-1 md:grid-cols-3 group-data-[state=empty]/list:hidden">
+				{% for i in range(1,6) %}
+					{% include "/snippets/cards/assistant.twig" with {placeholder:true} only %}
+				{% endfor %}
+			</div>
+		</template>
+
+		<template x-if="!isLoading && resources.length > 0 && showSearchResults">
+			<div class="flex flex-col gap-4">
+				<div>
+					<h2>{{ __('Search results') }}</h2>
+					<p class="text-content-dimmed">{{ __('Assistants matching your search.') }}</p>
+				</div>
+
+				<div class="grid grid-cols-2 gap-1 md:grid-cols-3">
+					<template x-for="assistant in resources" :key="assistant.id">
+						{% include "/snippets/cards/assistant.twig" only %}
+					</template>
+				</div>
+			</div>
+		</template>
+
+		{% include "sections/delete-modal.twig" with { 
+			message: __('Do you really want to delete the assistant?'),
+			title: '`${currentResource.title}`',
+			details: __('This action is permanent and cannot be undone. Existing conversations with this assistant will be preserved.')
+		} %}
+	</div>
+
+{% endblock %}

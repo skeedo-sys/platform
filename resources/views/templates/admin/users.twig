@@ -1,0 +1,175 @@
+{% extends "/layouts/main.twig" %}
+
+{% set active_menu = '/admin/users' %}
+
+{% set strings = {
+  delete_success: __("User has been deleted successfully.")
+} %}
+
+{% set xdata %}
+list("users",
+{{ strings|json_encode() }})
+{% endset %}
+
+{% block title p__('title', 'Users')|title %}
+
+{% block template %}
+	{# Header #}
+	<div class="flex justify-between items-center">
+		<div>
+			<h1>{{ p__('heading', 'Users') }}</h1>
+
+			<template x-if="total !== null">
+				<div class="text-sm text-content-dimmed md:hidden">
+					{{ __('Total :count users')|replace({':count': '<span x-text="total"></span>'})|raw }}
+				</div>
+			</template>
+		</div>
+
+		<div class="flex gap-2 items-center md:hidden">
+			<button type="button" class="hidden w-8 h-8 avatar">
+				<i class="text-lg ti ti-adjustments-horizontal"></i>
+			</button>
+
+			<a href="admin/users/new" class="w-8 h-8 rounded-full button button-accent button-sm">
+				<i class="text-lg ti ti-plus"></i>
+			</a>
+		</div>
+
+		<div class="hidden gap-2 items-center md:flex">
+			<button type="button" class="button button-outline button-sm" @click="exportData" :processing="isExporting">
+				{% include "/snippets/spinner.twig" %}
+
+				{{ p__('button', 'Export') }}
+			</button>
+
+			<a href="admin/users/new" class="button button-accent button-sm">
+				{{ p__('button', 'Add user') }}
+			</a>
+		</div>
+	</div>
+
+	{# Filters #}
+	{% include "/snippets/filters.twig" with { 
+    total: __('Total :count users'),
+    sort: [
+      {
+        value: null,
+        label: p__('label', 'Default')
+      },
+    
+      {
+        value: 'created_at',
+        label: p__('label', 'Date')
+      },
+    
+      {
+        value: 'first_name',
+        label: p__('label', 'First name')
+      },
+    
+      {
+        value: 'last_name',
+        label: p__('label', 'Last name')
+      }
+    ],
+    filters: [
+      {
+        label: p__('label', 'Role'),
+        model: 'role',
+        options: [
+          {
+            value: '0',
+            label: p__('role', 'User')
+          },
+          {
+            value: '1',
+            label: p__('role', 'Admin')
+          }
+        ]
+      },
+      {
+        label: p__('label', 'Status'),
+        model: 'status',
+        options: [
+          {
+            value: '0',
+            label: p__('status', 'Inactive')
+          },
+          {
+            value: '1',
+            label: p__('status', 'Active')
+          },
+					{
+						value: '2',
+						label: p__('status', 'Online')
+					},
+					{
+						value: '3',
+						label: p__('status', 'Away')
+					},
+        ]
+      },
+      {
+        label: p__('label', 'Email'),
+        model: 'is_email_verified',
+        options: [
+          {
+            value: '1',
+            label: p__('is_email_verified', 'Verified')
+          },
+          {
+            value: '0',
+            label: p__('is_email_verified', 'Unverified')
+          }
+        ]
+      },
+      {
+        label: p__('label', 'Country'),
+        model: "country_code",
+        options: []
+      },
+      {
+        label: p__('label', 'Date'),
+        model: "created_at",
+        hidden: true
+      },
+      {
+        label: p__('label', 'Affiliate'),
+        model: "ref",
+        hidden: true
+      }
+    ]
+  } %}
+
+	{# List #}
+	<div class="group/list" :data-state="state">
+		<div class="hidden group-data-[state=empty]/list:block">
+			{% include "sections/empty.twig" with { title: p__('heading', 'Empty result set'), message: __('There are no users yet.'), reset: __('There are no users matching your search.') } %}
+		</div>
+
+		<div class="hidden md:grid grid-cols-12 gap-3 items-center px-3 py-2 text-content-dimmed text-xs group-data-[state=empty]/list:hidden">
+			<div class="col-span-6">{{ p__('label', 'User') }}</div>
+			<div class="col-span-3">{{ p__('label', 'Created') }}</div>
+			<div class="col-span-2 justify-self-end">{{ p__('label', 'Status') }}</div>
+			<div class="col-span-1"></div>
+		</div>
+
+		<div class="text-sm flex flex-col gap-1 group-data-[state=empty]:hidden">
+			{% for i in range(1,5) %}
+				<div class="hidden group-data-[state=initial]/list:grid">
+					{% include "/snippets/admin/user.twig" with { actions: true } %}
+				</div>
+			{% endfor %}
+
+			<template x-for="user in resources" :key="user.id">
+				{% include "/snippets/admin/user.twig" with { u: 'user', actions: true } %}
+			</template>
+		</div>
+	</div>
+
+	{% include "sections/delete-modal.twig" with { 
+    message: __('Do you really want to delete :title?'),
+    title: '`${currentResource.first_name} ${currentResource.last_name}`'
+  } %}
+{% endblock %}

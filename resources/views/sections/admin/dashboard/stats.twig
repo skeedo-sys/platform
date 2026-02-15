@@ -1,0 +1,279 @@
+<section class="flex flex-col gap-6 box" data-density="comfortable" x-data="stats">
+	<div class="flex gap-2 items-center">
+		<h2>{{ p__('heading', 'Overview') }}</h2>
+
+		<template x-if="isCached">
+			<span class="badge" x-tooltip.raw="{{ __('Values updated every minute') }}">
+				{{ p__('button', 'Cached') }}
+			</span>
+		</template>
+	</div>
+
+	<div class="grid grid-cols-2 md:grid-cols-4 gap-1">
+		<a href="admin/users?status=2" class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex items-center text-xs text-content-dimmed">
+				{{ __('Online users') }}
+
+				<i class="text-base leading-4 ti ti-point-filled text-success"></i>
+			</div>
+
+			<span class="my-1 w-6 h-6 loading" :class="stats ? 'hidden' : ''"></span>
+
+			<template x-if="stats">
+				<x-credit class="text-2xl font-bold" :data-value="stats.online.metric"></x-credit>
+			</template>
+		</a>
+
+		<a href="admin/orders?status=pending" class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="text-xs text-content-dimmed">
+				{{ __('Pending orders') }}
+			</div>
+
+			<span class="my-1 h-6 w-18 loading" :class="stats ? 'hidden' : ''"></span>
+
+			<template x-if="stats">
+				<x-credit class="text-2xl font-bold" :data-value="stats.orders.pending.metric"></x-credit>
+			</template>
+		</a>
+
+		<a href="admin/affiliates/payouts?status=pending" class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('Pending payouts') }}
+
+				<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __("Pending affiliate payouts") }}"></i>
+			</div>
+
+			<span class="my-1 h-6 w-18 loading" :class="stats ? 'hidden' : ''"></span>
+
+			<template x-if="stats">
+				<x-money class="text-2xl font-bold" :data-value="stats.affiliates.pending.metric" currency="{{ currency.code }}" minor-units="{{ currency.fraction_digits }}"></x-money>
+			</template>
+		</a>
+
+		<div class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('MRR') }}
+
+				<template x-ref="date">
+					{% set date %}
+					<x-time :datetime='stats.mrr.calculated_at'></x-time>
+					{% endset %}
+
+					<span>
+						{{ __("Calculated at :date", {":date": date})|raw }}
+					</span>
+				</template>
+
+				<template x-if="stats && stats.mrr.calculated_at && !stats.mrr.error">
+					<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip="{content: () => $refs.date.innerHTML, allowHTML: true, appendTo: $root}"></i>
+				</template>
+
+				<template x-if="stats && !stats.mrr.calculated_at && !stats.mrr.error">
+					<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __('Not calculated yet') }}"></i>
+				</template>
+
+				<template x-if="stats && stats.mrr.error">
+					<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __('Will be retried in an hour') }}"></i>
+				</template>
+			</div>
+
+			<span class="my-1 h-6 w-18 loading" :class="stats ? 'hidden' : ''"></span>
+
+			<template x-if="stats">
+				<div class="flex flex-col gap-1">
+					<template x-if="stats.mrr.error">
+						<a href="admin/settings/billing" class="flex gap-1 items-center group" x-tooltip.raw="{{ __('Set up currency rate provider') }}">
+							<span class="text-2xl font-bold group-hover:underline">{{ __('N/A') }}</span>
+							<i class="text-base ti ti-alert-triangle text-failure"></i>
+						</a>
+					</template>
+
+					<template x-if="stats.mrr.calculated_at && !stats.mrr.error">
+						<x-money class="text-2xl font-bold" :data-value="stats.mrr.metric" currency="{{ currency.code }}" minor-units="{{ currency.fraction_digits }}"></x-money>
+					</template>
+
+					<template x-if="!stats.mrr.calculated_at && !stats.mrr.error">
+						<div class="flex gap-1 items-center">
+							<span class="text-2xl font-bold">{{ __('N/A') }}</span>
+						</div>
+					</template>
+				</div>
+			</template>
+		</div>
+
+		<div class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('New users') }}
+
+				<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __("Today's new users") }}"></i>
+			</div>
+
+			<div class="flex gap-2 items-center my-1" :class="stats ? 'hidden' : ''">
+				<span class="w-6 h-6 loading"></span>
+				<span class="w-16 badge loading"></span>
+			</div>
+
+			<template x-if="stats">
+				<div class="flex gap-2 items-center">
+					<x-credit class="text-2xl font-bold" :data-value="stats.signup.metric"></x-credit>
+
+					<template x-if="stats.signup.change > 0">
+						<span class="badge badge-success">
+							<i class="ti ti-arrow-up"></i>
+							<span x-text="stats.signup.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.signup.change < 0">
+						<span class="badge badge-failure">
+							<i class="ti ti-arrow-down"></i>
+							<span x-text="stats.signup.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.signup.change == 0">
+						<span class="badge">
+							<span x-text="stats.signup.change"></span>%
+						</span>
+					</template>
+				</div>
+			</template>
+		</div>
+
+
+		<div class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('Credit usage') }}
+
+				<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __("Today's credit usage") }}"></i>
+			</div>
+
+			<div class="flex gap-2 items-center my-1" :class="stats ? 'hidden' : ''">
+				<span class="w-6 h-6 loading"></span>
+				<span class="w-16 badge loading"></span>
+			</div>
+
+			<template x-if="stats">
+				<div class="flex gap-2 items-center">
+					<x-credit class="text-2xl font-bold" :data-value="stats.usage.metric"></x-credit>
+
+					<template x-if="stats.usage.change > 0">
+						<span class="badge badge-success">
+							<i class="ti ti-arrow-up"></i>
+							<span x-text="stats.usage.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.usage.change < 0">
+						<span class="badge badge-failure">
+							<i class="ti ti-arrow-down"></i>
+							<span x-text="stats.usage.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.usage.change == 0">
+						<span class="badge">
+							<span x-text="stats.usage.change"></span>%
+						</span>
+					</template>
+				</div>
+			</template>
+		</div>
+
+
+		<div class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('New orders') }}
+
+				<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __("Today's new orders") }}"></i>
+			</div>
+
+			<div class="flex gap-2 items-center my-1" :class="stats ? 'hidden' : ''">
+				<span class="w-6 h-6 loading"></span>
+				<span class="w-16 badge loading"></span>
+			</div>
+
+			<template x-if="stats">
+				<div class="flex gap-2 items-center">
+					<x-credit class="text-2xl font-bold" :data-value="stats.order.metric"></x-credit>
+
+					<template x-if="stats.order.change > 0">
+						<span class="badge badge-success">
+							<i class="ti ti-arrow-up"></i>
+							<span x-text="stats.order.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.order.change < 0">
+						<span class="badge badge-failure">
+							<i class="ti ti-arrow-down"></i>
+							<span x-text="stats.order.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.order.change == 0">
+						<span class="badge">
+							<span x-text="stats.order.change"></span>%
+						</span>
+					</template>
+				</div>
+			</template>
+		</div>
+
+
+		<div class="box bg-line-super-dimmed flex flex-col gap-1">
+			<div class="flex gap-1 items-center text-xs text-content-dimmed">
+				{{ __('New subscriptions') }}
+
+				<i class="text-base leading-4 ti ti-info-square-rounded-filled" x-tooltip.raw="{{ __("Today's new subscriptions") }}"></i>
+			</div>
+
+			<div class="flex gap-2 items-center my-1" :class="stats ? 'hidden' : ''">
+				<span class="w-6 h-6 loading"></span>
+				<span class="w-16 badge loading"></span>
+			</div>
+
+			<template x-if="stats">
+				<div class="flex gap-2 items-center">
+					<x-credit class="text-2xl font-bold" :data-value="stats.subscription.metric"></x-credit>
+
+					<template x-if="stats.subscription.change > 0">
+						<span class="badge badge-success">
+							<i class="ti ti-arrow-up"></i>
+							<span x-text="stats.subscription.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.subscription.change < 0">
+						<span class="badge badge-failure">
+							<i class="ti ti-arrow-down"></i>
+							<span x-text="stats.subscription.change"></span>%
+						</span>
+					</template>
+
+					<template x-if="stats.subscription.change == 0">
+						<span class="badge">
+							<span x-text="stats.subscription.change"></span>%
+						</span>
+					</template>
+				</div>
+			</template>
+		</div>
+	</div>
+</section>
+
+<section class="flex flex-col gap-6 box" data-density="comfortable">
+	<div class="flex gap-2 justify-between items-center">
+		<h2>{{ p__('heading', 'Credit usage') }}</h2>
+
+		<span class="badge">
+			{{ p__('button', 'Last 30 days') }}
+		</span>
+	</div>
+
+	<div class="h-64">
+		<x-chart :set="JSON.stringify(datasets.usage)" class="block">
+			<div chart class="h-64"></div>
+		</x-chart>
+	</div>
+</section>
