@@ -4,6 +4,9 @@ services:
   app:
     container_name: skeedo_app
     restart: unless-stopped
+    build:
+      context: https://github.com/skeedo-sys/platform.git
+      dockerfile: Dockerfile
     working_dir: /app
     environment:
       ENVIRONMENT: install
