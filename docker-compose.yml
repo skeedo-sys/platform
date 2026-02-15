@@ -2,12 +2,11 @@ version: '3.8'
 
 services:
   app:
-    image: skeedo:latest
     container_name: skeedo_app
     restart: unless-stopped
     working_dir: /app
     environment:
-      ENVIRONMENT: prod
+      ENVIRONMENT: install
       DB_DRIVER: mysql
       DB_HOST: mysql
       DB_PORT: 3306
