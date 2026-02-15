@@ -23,7 +23,7 @@ class ThemeExtension extends AbstractExtension implements ExtensionInterface
         private string $webroot,
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
     ) {
         $this->rootDir = $webroot . '/e/' . $this->theme;
 

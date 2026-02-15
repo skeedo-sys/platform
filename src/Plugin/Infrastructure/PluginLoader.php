@@ -21,7 +21,7 @@ class PluginLoader
         private PluginRepositoryInterface $repo,
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
     ) {
     }
 

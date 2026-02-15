@@ -37,7 +37,7 @@ class LocaleMiddleware implements MiddlewareInterface
         private string $extDir,
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
 
         #[Inject('config.locale.locales')]
         private array $locales = [],

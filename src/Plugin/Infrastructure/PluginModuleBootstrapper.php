@@ -29,7 +29,7 @@ class PluginModuleBootstrapper implements BootstrapperInterface
         private string $extDir,
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
 
         #[Inject('config.enable_debugging')]
         private bool $enableDebugging = false,

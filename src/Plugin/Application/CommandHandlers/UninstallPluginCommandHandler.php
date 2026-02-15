@@ -25,7 +25,7 @@ class UninstallPluginCommandHandler
         private string $extDir,
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
     ) {
         $this->composer->setAutoExit(false);
     }

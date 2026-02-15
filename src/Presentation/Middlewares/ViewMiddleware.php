@@ -46,7 +46,7 @@ class ViewMiddleware implements MiddlewareInterface
         private array $locales = [],
 
         #[Inject('option.theme')]
-        private string $theme = 'heyaikeedo/default',
+        private string $theme = 'skeedo/default',
     ) {}
 
     /** @inheritDoc */

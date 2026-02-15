@@ -630,7 +630,7 @@
                                                         },
                                                         {
                                                             "type": "docs",
-                                                            "value": "https://docs.aikeedo.com/"
+                                                            "value": "https://docs.app.skeedo.cloud/"
                                                         },
                                                         {
                                                             "type": "email",
@@ -654,7 +654,7 @@
                                                         },
                                                         {
                                                             "type": "wiki",
-                                                            "value": "https://docs.aikeedo.com/"
+                                                            "value": "https://docs.app.skeedo.cloud/"
                                                         }
                                                     ],
                                                     "licenses": [

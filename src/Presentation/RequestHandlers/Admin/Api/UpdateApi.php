@@ -139,7 +139,7 @@ class UpdateApi extends AdminApi implements
             );
         }
 
-        if ($json->name !== 'heyaikeedo/aikeedo') {
+        if ($json->name !== 'skeedo/aikeedo') {
             throw new Exception('Invalid update file');
         }
     }

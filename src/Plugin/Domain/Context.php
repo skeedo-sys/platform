@@ -163,10 +163,10 @@ class Context
             }
         }
 
-        if (!isset($json->require->{"heyaikeedo/composer"})) {
+        if (!isset($json->require->{"skeedo/composer"})) {
             throw new InvalidPluginComposerJsonFileException(
                 "Invalid composer.json file: "
-                    . " All plugins/themes must require <heyaikeedo/composer> library."
+                    . " All plugins/themes must require <skeedo/composer> library."
             );
         }
 

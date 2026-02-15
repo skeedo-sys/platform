@@ -1,7 +1,7 @@
 {
-  "name": "aikeedo",
+  "name": "skeedo",
   "version": "3.x",
-  "description": "AIKEEDO - AI Generator",
+  "description": "Skeedo - AI Generator",
   "main": "index.js",
   "directories": {
     "doc": "docs",

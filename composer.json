@@ -1,11 +1,11 @@
 {
-    "name": "heyaikeedo/aikeedo",
-    "description": "Aikeedo - AI Powered Content Platform - Saas Ready",
+    "name": "skeedo/skeedo",
+    "description": "Skeedo - AI Powered Content Platform - Saas Ready",
     "type": "project",
     "authors": [
         {
-            "name": "Aikeedo Team",
-            "email": "hey@aikeedo.com"
+            "name": "Skeedo Team",
+            "email": "hey@skeedo.cloud"
         }
     ],
     "require": {
@@ -46,7 +46,7 @@
         "somnambulist/validation": "^1.12",
         "twig/twig": "^3.20",
         "firebase/php-jwt": "^6.11",
-        "heyaikeedo/integrity": "^1.0",
+        "skeedo/integrity": "^1.0",
         "symfony/yaml": "^7.2",
         "nette/php-generator": "^4.1",
         "symfony/intl": "^7.2",
@@ -69,7 +69,7 @@
         "giggsey/libphonenumber-for-php-lite": "^9.0",
         "mattketmo/email-checker": "^2.4",
         "twig/markdown-extra": "^3.21",
-        "heyaikeedo/default": "^2.0"
+        "skeedo/default": "^2.0"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.6",
@@ -105,7 +105,7 @@
     "config": {
         "allow-plugins": {
             "php-http/discovery": true,
-            "heyaikeedo/*": true
+            "skeedo/*": true
         }
     },
     "repositories": [
